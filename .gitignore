@@ -166,3 +166,5 @@ xxx*
 winuae-merge.txt
 .vscode
 **/*.o-*
+.DS_Store
+**/*.dylib

@@ -1756,6 +1756,13 @@ void record_copper_blitwait (uaecptr addr, int hpos, int vpos)
 
 void record_copper (uaecptr addr, uae_u16 word1, uae_u16 word2, int hpos, int vpos)
 {
+	#ifdef REMOTE_DEBUGGER
+	if (remote_debugging) {
+		remote_debug_copper (addr, word1, word2, hpos, vpos);
+		return;
+	}
+	#endif
+
 	int t = nr_cop_records[curr_cop_set];
 	init_record_copper();
 	if (t < NR_COPPER_RECORDS) {
@@ -1767,6 +1774,7 @@ void record_copper (uaecptr addr, uae_u16 word1, uae_u16 word2, int hpos, int vp
 		cop_record[curr_cop_set][t].bvpos = -1;
 		nr_cop_records[curr_cop_set] = t + 1;
 	}
+
 	if (debug_copper & 2) { /* trace */
 		debug_copper &= ~2;
 		activate_debugger ();

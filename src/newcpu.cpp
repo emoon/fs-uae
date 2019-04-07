@@ -2971,6 +2971,7 @@ kludge_me_do:
 // address = format $2 stack frame address field
 static void ExceptionX (int nr, uaecptr address)
 {
+	uaecptr pc = m68k_getpc();
 	regs.exception = nr;
 	if (cpu_tracer) {
 #ifdef FSUAE
@@ -2981,12 +2982,20 @@ static void ExceptionX (int nr, uaecptr address)
 		cputrace.state = nr;
 	}
 	if (!regs.s) {
-		regs.instruction_pc_user_exception = m68k_getpc();
+		regs.instruction_pc_user_exception = pc;
 	}
 #ifdef JIT
 	if (currprefs.cachesize)
-		regs.instruction_pc = address == -1 ? m68k_getpc () : address;
+		regs.instruction_pc = address == -1 ? pc : address;
 #endif
+
+	if (debug_illegal && !in_rom(pc)) {
+		if (nr <= 63 && (debug_illegal_mask & ((uae_u64)1 << nr))) {
+			write_log(_T("Exception %d breakpoint\n"), nr);
+			activate_debugger();
+		}
+	}
+	
 #ifdef CPUEMU_13
 	if (currprefs.cpu_cycle_exact && currprefs.cpu_model <= 68010)
 		Exception_ce000 (nr);
@@ -2994,9 +3003,9 @@ static void ExceptionX (int nr, uaecptr address)
 #endif
 		if (currprefs.mmu_model) {
 			if (currprefs.cpu_model == 68030)
-				Exception_mmu030 (nr, m68k_getpc ());
+				Exception_mmu030 (nr, pc);
 			else
-				Exception_mmu (nr, m68k_getpc ());
+				Exception_mmu (nr, pc);
 		} else {
 			Exception_normal (nr);
 		}

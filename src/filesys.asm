@@ -770,7 +770,7 @@ addvolumenode
 	tst.b 32+44(a3)
 	beq.s .end ;empty volume string = empty drive
 	move.l 160(a3),a6
-	cmp.w #37, 20(a6)
+	cmp.w #37,20(a6)
 	bcs.s .prev37
 	moveq #(1<<1)+(1<<3)+(1<<2),d1 ;LDF_WRITE | LDF_VOLUMES | LDF_DEVICES
 	jsr -$29A(a6) ;AttemptLockDosList
@@ -1472,11 +1472,11 @@ FSML_loop:
 	beq.s nonnotif
 
 	; notify reply?
-	cmp.w #38, 18(a4)
+	cmp.w #38,18(a4)
 	bne.s nonnotif
-	cmp.l #NOTIFY_CLASS, 20(a4)
+	cmp.l #NOTIFY_CLASS,20(a4)
 	bne.s nonnotif
-	cmp.w #NOTIFY_CODE, 24(a4)
+	cmp.w #NOTIFY_CODE,24(a4)
 	bne.s nonnotif
 	move.l 26(a4),a0 ; NotifyRequest
 	move.l 12(a0),d0 ; flags
@@ -2118,7 +2118,7 @@ mhloop
 
 	move.w MH_X+MH_DATA(a5),12+2(a0) ;ient_TabletX
 	clr.w 16(a0)
-	move.w MH_Y++MH_DATA(a5),16+2(a0) ;ient_TabletY
+	move.w MH_Y+MH_DATA(a5),16+2(a0) ;ient_TabletY
 	clr.w 20(a0)
 	move.w MH_MAXX+MH_DATA(a5),20+2(a0) ;ient_RangeX
 	clr.w 24(a0)
@@ -2748,11 +2748,22 @@ debuggerproc
 	move.l a0,a2
 	moveq #1,d1
 	jsr (a0) ; debugger init
-	tst.l d1
-	beq.s .dend
-	move.l d1,a3
-	jsr -$1f8(a6) ; RunCommand
-	moveq #2,d1
+	tst.l d1           
+	beq.s .dend        ; If d1 = 0 : do not run program
+	cmpi.w #36,20(a6)  ; KS version < 36 = kickstart 2.0
+	blt.s .drcproc
+	move.l d1,a3       ; kickstart >= 2.0 runCommand exists
+	jsr -$1f8(a6)      ; RunCommand
+	tst.l d0           ; test the return code 0 = error
+	bne.s .dend
+	jmp .derror
+.drcproc ; kickstart < 2.0 No runCommand - use createProc
+	move.l d3,a3       ; save the segs in a3
+	jsr -$8a(a6)       ; createProc
+	tst.l d0           ; test the return code 0 = error
+	bne.s .dend
+.derror
+	moveq #2,d1 ; error call the debugger end
 	move.l a3,a0
 	jsr (a2) ; debugger end
 .dend

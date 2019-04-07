@@ -40,6 +40,10 @@ void remote_debug_init (int port, int time_out);
 
 void remote_debug (void);
 
+// Main function for copper debugging
+
+void remote_debug_copper (uaecptr addr, uae_u16 word1, uae_u16 word2, int hpos, int vpos);
+
 // This function needs to be called at regular interval to keep the socket connection alive
 
 void remote_debug_update (void);
@@ -61,6 +65,7 @@ void remote_debug_check_exception();
 #define REMOTE_DEBUGGER_DEFAULT_PORT 6860
 
 // Error codes for the remote protocol
+#define ERROR_PACKET_NOT_SUPPORTED            "E09" // Packet not supported
 #define ERROR_SEND_MEMORY_PARSE               "E0f" // Error during the packet parse for command send memory
 #define ERROR_UNKOWN_REGISTER                 "E10" // Unknown register
 #define ERROR_INVALID_FRAME_ID                "E11" // Invalid Frame Id
@@ -71,6 +76,12 @@ void remote_debug_check_exception();
 #define ERROR_SET_REGISTER_PARSE              "E25" // Error during the packet parse for command set register
 #define ERROR_SET_REGISTER_NON_SUPPORTED      "E26" // Error during set registed - not supported register name
 #define ERROR_GET_REGISTER_PARSE              "E30" // Error during the packet parse for command get register
+#define ERROR_VCONT_PARSE                     "E31" // Error during the packet parse for command vcont
+#define ERROR_SET_BREAKPOINT_PARSE            "E35" // Error during the packet parse for command set Breakpoint
+#define ERROR_SET_BREAKPOINT_EXCP_PARSE       "E36" // Error during the packet parse for command set exception breakpoint
+#define ERROR_MAX_BREAKPOINTS_REACHED         "E37" // The maximum of breakpoints have been reached
+#define ERROR_UNKNOWN_BREAKPOINT_TYPE         "E38" // Unknown breakpoint type
+#define ERROR_UNKNOWN_BREAKPOINT_KIND         "E39" // Unknown breakpoint kind
 
 // Registers Indexes
 // order of registers are assumed to be
@@ -83,7 +94,11 @@ void remote_debug_check_exception();
 #define REGISTER_CTRL_INDEX 26
 #define REGISTER_IAR_INDEX 27
 #define REGISTER_LAST_VALID_INDEX 27
+
+// Other infos sent in stop packets after registers 'T'
+#define REGISTER_COPPER_ADDR_INDEX 30
+
 #endif // REMOTE_DEBUGGER
 
-#endif // UATE_REMOTE_DEBUG
+#endif // UAE_REMOTE_DEBUG
 
